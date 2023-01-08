@@ -1,7 +1,9 @@
+const axios = require("axios");
+
 const launches = require("./launches.mongo");
 const planets = require("./planets.mongo");
 
-let latestFlightNumber = 100;
+let defaultFlightNumber = 100;
 
 const Launch = {
   flightNumber: 100,
@@ -14,7 +16,32 @@ const Launch = {
   success: true,
 };
 
+const SPACE_X_API_URL = "https://api.spacexdata.com/v4/launches/query";
+
 saveLaunch(Launch);
+
+async function loadLaunchData() {
+  console.log("Loading launch data...");
+  const response = await axios.post(SPACE_X_API_URL, {
+    query: {},
+    options: {
+      populate: [
+        {
+          path: "rocket",
+          select: {
+            name: 1,
+          },
+        },
+        {
+          path: "payloads",
+          select: {
+            customers: 1,
+          },
+        },
+      ],
+    },
+  });
+}
 
 async function getAllLaunches() {
   return await launches.find(
@@ -35,7 +62,7 @@ async function saveLaunch(launch) {
     throw new Error("No matching planet found");
   }
 
-  await launches.updateOne(
+  await launches.findOneAndUpdate(
     {
       flightNumber: launch.flightNumber,
     },
@@ -46,33 +73,52 @@ async function saveLaunch(launch) {
   );
 }
 
-function addNewLaunch(launch) {
-  latestFlightNumber++;
-  launches.set(
-    launch.flightNumber,
-    Object.assign(launch, {
-      success: true,
-      upcoming: true,
-      customers: ["NASA", "ISRO"],
-      flightNumber: latestFlightNumber,
-    })
+async function getLatestFlightNumber() {
+  const latestLaunch = await launches.findOne({}).sort("-flightNumber");
+
+  if (!latestLaunch) {
+    return defaultFlightNumber;
+  }
+  return latestLaunch.flightNumber;
+}
+
+async function scheduleNewLaunch(launch) {
+  const newFlightNumber = (await getLatestFlightNumber()) + 1;
+
+  const newLaunch = Object.assign(launch, {
+    success: true,
+    upcoming: true,
+    customers: ["NASA", "ISRO"],
+    flightNumber: newFlightNumber,
+  });
+
+  await saveLaunch(newLaunch);
+}
+
+async function existsLaunchWithId(launchId) {
+  return await launches.findOne({
+    flightNumber: launchId,
+  });
+}
+
+async function abortLaunchById(launchId) {
+  const aborted = await launches.updateOne(
+    {
+      flightNumber: launchId,
+    },
+    {
+      upcoming: false,
+      success: false,
+    }
   );
-}
 
-function existsLaunchWithId(launchId) {
-  return launches.has(launchId);
-}
-
-function abortLaunchById(launchId) {
-  const aborted = launches.get(launchId);
-  aborted.upcoming = false;
-  aborted.success = false;
-  return aborted;
+  return aborted.ok === 1 && aborted.nModified === 1;
 }
 
 module.exports = {
+  loadLaunchData,
   getAllLaunches,
-  addNewLaunch,
+  scheduleNewLaunch,
   existsLaunchWithId,
   abortLaunchById,
 };

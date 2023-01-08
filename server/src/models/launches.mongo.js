@@ -5,7 +5,7 @@ const launchesSchema = new mongoose.Schema({
     type: Number,
     required: true,
   },
-  Date: {
+  launchDate: {
     type: Date,
     required: true,
   },

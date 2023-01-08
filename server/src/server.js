@@ -2,6 +2,7 @@ const http = require("http");
 const mongoose = require("mongoose");
 
 const app = require("./app");
+const { loadLaunchData } = require("./models/launches.model");
 const { LoadPlanetsData } = require("./models/planets.model");
 
 const PORT = process.env.PORT || 8000;
@@ -25,11 +26,14 @@ async function startServer() {
     useUnifiedTopology: true,
     autoIndex: true,
   });
+
   await LoadPlanetsData();
   const server = http.createServer(app);
   server.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
   });
+
+  loadLaunchData();
 }
 
 startServer();

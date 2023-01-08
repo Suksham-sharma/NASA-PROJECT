@@ -1,6 +1,6 @@
 const {
   getAllLaunches,
-  addNewLaunch,
+  scheduleNewLaunch,
   existsLaunchWithId,
   abortLaunchById,
 } = require("../../models/launches.model");
@@ -9,7 +9,7 @@ async function httpGetAllLaunches(req, res) {
   return res.status(200).json(await getAllLaunches());
 }
 
-function httpAddNewLaunch(req, res) {
+async function httpAddNewLaunch(req, res) {
   const launch = req.body;
 
   const requiredProperties = ["mission", "rocket", "launchDate", "target"];
@@ -21,20 +21,31 @@ function httpAddNewLaunch(req, res) {
     }
   }
 
-  addNewLaunch(launch);
+  await scheduleNewLaunch(launch);
   return res.status(201).json(launch);
 }
 
-function httpAbortLaunch(req, res) {
+async function httpAbortLaunch(req, res) {
   const launchId = Number(req.params.id);
-  if (!existsLaunchWithId(launchId)) {
+
+  const existLaunch = await existsLaunchWithId(launchId);
+  if (!existLaunch) {
     return res.status(404).json({
       error: "Launch Data for the given id not found",
     });
   }
 
   const aborted = abortLaunchById(launchId);
-  res.status(200).json(aborted);
+
+  if (!aborted) {
+    return res.status(400).json({
+      error: "Launch not aborted",
+    });
+  }
+
+  res.status(200).json({
+    ok: true,
+  });
 }
 
 module.exports = {
