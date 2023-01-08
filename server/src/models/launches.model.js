@@ -4,6 +4,7 @@ const launches = require("./launches.mongo");
 const planets = require("./planets.mongo");
 
 let defaultFlightNumber = 100;
+const SPACE_X_API_URL = "https://api.spacexdata.com/v4/launches/query";
 
 const Launch = {
   flightNumber: 100,
@@ -15,8 +16,6 @@ const Launch = {
   upcoming: true,
   success: true,
 };
-
-const SPACE_X_API_URL = "https://api.spacexdata.com/v4/launches/query";
 
 saveLaunch(Launch);
 
