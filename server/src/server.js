@@ -11,8 +11,7 @@ const { LoadPlanetsData } = require("./models/planets.model");
 const PORT = process.env.PORT || 8000;
 
 const MONGO_URL =
-  process.env.MONGO_URL ||
-  "mongodb+srv://nasa-api:WmyhohODBbREpPrx@nasacluster.nnpuvru.mongodb.net/NASA?retryWrites=true&w=majority";
+  process.env.MONGO_URL 
 
 mongoose.set("strictQuery", true);
 
