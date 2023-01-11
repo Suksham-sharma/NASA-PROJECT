@@ -6,9 +6,6 @@ and back-end functionalities .
 
 
 
-
-
-
 ## What does the project does:
 
 In the main part of front-end interface , thier is a launch section,
