@@ -33,7 +33,7 @@ async function startServer() {
     console.log(`Server is running on port ${PORT}`);
   });
 
-  loadLaunchData();
+  await loadLaunchData();
 }
 
 startServer();
